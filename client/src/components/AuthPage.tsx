@@ -1,0 +1,38 @@
+import { useState } from "react"
+
+function AuthPage() {
+    const [isLogin, setIsLogin] = useState(true);
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="m-5 bg-white border-4 border-blue-400 p-8 rounded-2xl w-full max-w-md flex flex-col gap-4">
+                <h2 className="text-2xl font-bold text-center">
+                    {isLogin ? "Log in" : "Register"}
+                </h2>
+                
+                <label className="flex flex-col">
+                    <span className="text-sm font-medium">{isLogin ? "Username:" : "Set a username:"}</span>
+                    <input type="text" placeholder="username" className="p-2 rounded mt-1 text-black border-4 border-blue-300 outline-none" />
+                </label>
+                
+                <label className="flex flex-col">
+                    <span className="text-sm font-medium">{isLogin ? "Password:" : "Set a password:"}</span>
+                    <input type="password" placeholder="••••••••" className="p-2 rounded mt-1 text-black border-4 border-blue-300 outline-none" />
+                </label>
+
+                <button className="bg-blue-500 text-white py-2 rounded font-bold hover:bg-blue-600">
+                    {isLogin ? "Sign in" : "Create an account"}
+                </button>   
+                {isLogin ? (<div className="text-center">
+                    <p>Don't have an account?</p>
+                    <p><span onClick={() => setIsLogin(!isLogin)} className="font-bold text-blue-500 hover:underline">Register</span> or <span className="font-bold text-blue-500 hover:underline">continue without an account</span></p>
+                </div>)
+                : <div className="text-center mt-6">
+                    <p><span onClick={() => setIsLogin(!isLogin)} className="font-bold text-blue-500 hover:underline">Back to logging in</span></p>
+                </div>}
+            </div>
+        </div>
+    )
+}
+
+export default AuthPage

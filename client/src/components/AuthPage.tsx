@@ -23,10 +23,29 @@ function AuthPage() {
             if (response.ok) {
                 window.location.href = '/';
             } else {
-                setError('Invalid credentials');
+                const data = await response.json();
+                setError(data.message || data.error || 'Invalid credentials');
             }
         } catch (error) {
             setError('Connection error')
+        }
+    };
+
+    const handleGuestLogin = async () => {
+        setError('');
+        try {
+            const response = await fetch('http://localhost:3001/auth/guest', {
+                method: 'POST',
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                window.location.href = '/';
+            } else {
+                setError('Guest login error');
+            }
+        } catch (error) {
+            setError('Connection error.');
         }
     };
 
@@ -71,7 +90,7 @@ function AuthPage() {
                 </button>   
                 {isLogin ? (<div className="text-center">
                     <p>Don't have an account?</p>
-                    <p><span onClick={() => setIsLogin(!isLogin)} className="cursor-pointer font-bold text-blue-500 hover:underline">Register</span> or <span className="cursor-pointer font-bold text-blue-500 hover:underline">continue without an account</span></p>
+                    <p><span onClick={() => setIsLogin(!isLogin)} className="cursor-pointer font-bold text-blue-500 hover:underline">Register</span> or <span onClick={handleGuestLogin} className="cursor-pointer font-bold text-blue-500 hover:underline">continue without an account</span></p>
                 </div>)
                 : <div className="text-center mt-6">
                     <p><span onClick={() => setIsLogin(!isLogin)} className="cursor-pointer font-bold text-blue-500 hover:underline">Back to logging in</span></p>

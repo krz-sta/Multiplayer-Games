@@ -35,9 +35,9 @@ function Header({ user }: any) {
 
                 <nav className="hidden md:flex gap-6 items-center">
                     <button className="drop-shadow-sm hover:text-blue-200 transition">Play</button>
-                    <button className="drop-shadow-sm hover:text-blue-200 transition">Friends</button>
+                    {!user.user_metadata.is_guest ? (<button className="drop-shadow-sm hover:text-blue-200 transition">Friends</button>) : ''}
                     <button 
-                        className="drop-shadow-sm hover:text-red-200 transition"
+                        className="drop-shadow-sm hover:text-blue-200 transition"
                         onClick={handleLogout}
                     >
                         Log out
@@ -54,7 +54,9 @@ function Header({ user }: any) {
                         Logged in as: <span className="font-bold text-white">{user.user_metadata.username}</span>
                     </div>
                     <button className="text-left">Play</button>
-                    <button className="text-left">Friends</button>
+
+                    {!user.user_metadata.is_guest ? (<button className="text-left">Friends</button>) : ''}
+
                     <button 
                         className="text-left"
                         onClick={handleLogout}

@@ -144,6 +144,58 @@ app.post('/auth/logout', async (req: Request, res: Response) => {
     res.status(200).json({ message: 'Logged out successfully. '});
 });
 
+app.post('/auth/guest', async (req: Request, res: Response) => {
+    try {
+        const randomNum = Math.floor(Math.random() * 100000);
+        const username = `Guest_${randomNum}`;
+        const password = `GuestPass${randomNum}!`;
+        const fakeEmail = `${username.toLowerCase()}@game.local`;
+
+        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+            email: fakeEmail,
+            password: password,
+            email_confirm: true,
+            user_metadata: { username, is_guest: true }
+        });
+
+        if (authError) throw authError;
+
+        const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+                id: authData.user.id,
+                username: username
+            });
+    
+        if (profileError) {
+            await supabase.auth.admin.deleteUser(authData.user.id);
+            throw profileError;
+        }
+
+        const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+            email: fakeEmail,
+            password: password
+        });
+
+        if (loginError) throw loginError;
+
+        res.cookie('session-token', loginData.session.access_token, {
+            httpOnly: true,
+            secure: false,
+            sameSite: 'lax'
+        });
+
+        res.status(201).json({
+            message: 'Logged in as guest.',
+            user: loginData.user
+        });
+
+    } catch (error: any) {
+        console.error('Error: ', error);
+        res.status(500).json({ error: 'Error' });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server is running on: http://localhost:${PORT}`);
 });

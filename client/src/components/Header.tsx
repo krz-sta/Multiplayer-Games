@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function Header({ user }: any) {
+function Header({ user, setActiveTab }: any) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const handleLogout = async () => {
@@ -34,8 +34,8 @@ function Header({ user }: any) {
                 </button>
 
                 <nav className="hidden md:flex gap-6 items-center">
-                    <button className="drop-shadow-sm hover:text-blue-200 transition">Play</button>
-                    {!user.user_metadata.is_guest ? (<button className="drop-shadow-sm hover:text-blue-200 transition">Friends</button>) : ''}
+                    <button onClick={() => setActiveTab('games')} className="drop-shadow-sm hover:text-blue-200 transition">Play</button>
+                    {!user.user_metadata.is_guest ? (<button onClick={() => setActiveTab('friends')} className="drop-shadow-sm hover:text-blue-200 transition">Friends</button>) : ''}
                     <button 
                         className="drop-shadow-sm hover:text-blue-200 transition"
                         onClick={handleLogout}
@@ -53,9 +53,9 @@ function Header({ user }: any) {
                     <div className="text-sm text-blue-200 mt-2">
                         Logged in as: <span className="font-bold text-white">{user.user_metadata.username}</span>
                     </div>
-                    <button className="text-left">Play</button>
+                    <button onClick={() => setActiveTab('games')} className="text-left">Play</button>
 
-                    {!user.user_metadata.is_guest ? (<button className="text-left">Friends</button>) : ''}
+                    {!user.user_metadata.is_guest ? (<button onClick={() => setActiveTab('friends')} className="text-left">Friends</button>) : ''}
 
                     <button 
                         className="text-left"

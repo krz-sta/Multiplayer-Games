@@ -196,6 +196,66 @@ app.post('/auth/guest', async (req: Request, res: Response) => {
     }
 });
 
+app.get('/friends/:userId', async (req: Request, res: Response) => {
+    const { userId } = req.params
+    
+    try {
+        const { data: pendingRequests, error: reqError } = await supabase
+            .from('friendships')
+            .select('id, profiles!sender_id(id, username)')
+            .eq('receiver_id', userId)
+            .eq('status', 'pending');
+
+        if (reqError) throw reqError;
+
+        const { data: friends, error: friendsError  } = await supabase
+            .from('friendships')
+            .select('id, sender_id, receiver_id, sender:profiles!sender_id(username), receiver:profiles!receiver_id(username)')
+            .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+            .eq('status', 'accepted');
+
+        if (friendsError) throw friendsError;
+
+        res.status(200).json({ requests: pendingRequests, friends: friends});
+    } catch (error: any) {
+        console.error("Error: ", error)
+        res.status(400).json({ error: error.message });
+    }
+});
+
+app.post('/friends/request', async (req: Request, res: Response) => {
+    const { sender_id, receiver_id } = req.body;
+
+    try {
+        const { data, error } = await supabase
+            .from('friendships')
+            .insert({ sender_id, receiver_id, status: 'pending' });
+
+        if (error) throw error;
+
+        res.status(201).json({ message: 'Request sent.' });
+    } catch (error: any) {
+        console.error("Error: ", error)
+        res.status(400).json({message: error.message});
+    }
+});
+
+app.patch('/friends/accept', async (req: Request, res: Response) => {
+    const { friendship_id } = req.body;
+
+    try {
+        const { error } = await supabase
+            .from('friendships')
+            .update({ status: 'accepted' })
+            .eq('id', friendship_id);
+
+        if (error) throw error;
+        res.status(200).json({ message: 'Request accepted.' });
+    } catch (error: any) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server is running on: http://localhost:${PORT}`);
 });

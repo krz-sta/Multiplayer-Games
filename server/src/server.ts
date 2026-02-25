@@ -108,7 +108,6 @@ app.post('/auth/login', async (req: Request, res: Response) => {
 });
 
 app.get('/auth/me', async (req: Request, res: Response) => {
-    console.log('auth/me');
     const token = req.cookies['session-token'];
 
     if (!token) {
@@ -130,7 +129,7 @@ app.post('/auth/logout', async (req: Request, res: Response) => {
     if (token) {
         try {
             await supabase.auth.admin.signOut(token);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error: ', error);
         }
     }
@@ -141,7 +140,7 @@ app.post('/auth/logout', async (req: Request, res: Response) => {
         sameSite: 'lax'
     });
     
-    res.status(200).json({ message: 'Logged out successfully. '});
+    res.status(200).json({ message: 'Logged out successfully.'});
 });
 
 app.post('/auth/guest', async (req: Request, res: Response) => {
@@ -210,13 +209,21 @@ app.get('/friends/:userId', async (req: Request, res: Response) => {
 
         const { data: friends, error: friendsError  } = await supabase
             .from('friendships')
-            .select('id, sender_id, receiver_id, sender:profiles!sender_id(username), receiver:profiles!receiver_id(username)')
+            .select('id, sender:profiles!sender_id(username), receiver:profiles!receiver_id(username)')
             .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
             .eq('status', 'accepted');
 
         if (friendsError) throw friendsError;
 
-        res.status(200).json({ requests: pendingRequests, friends: friends});
+        const { data: sentRequests, error: sentRequestsError } = await supabase
+            .from('friendships')
+            .select('id, profiles!receiver_id(id, username)')
+            .eq('sender_id', userId)
+            .eq('status', 'pending')
+
+        if (sentRequestsError) throw sentRequestsError
+
+        res.status(200).json({ requests: pendingRequests, friends: friends, sent: sentRequests });
     } catch (error: any) {
         console.error("Error: ", error)
         res.status(400).json({ error: error.message });
@@ -240,17 +247,60 @@ app.post('/friends/request', async (req: Request, res: Response) => {
     }
 });
 
+app.post('/friends/requestusername', async (req: Request, res: Response) => {
+    const { sender_id, receiver_username } = req.body;
+
+    try {
+        const { data: userData, error: userError } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('username', receiver_username)
+            .single();
+
+        if (userError) throw userError;
+
+        if (!userData) throw new Error("Username not found.")
+
+        const { data: requestData, error: requestError } = await supabase
+            .from('friendships')
+            .insert({ sender_id, receiver_id: userData.id, status: 'pending'});
+
+        if (requestError) throw requestError;
+
+        res.status(201).json({ message: 'Request sent.'})
+
+    } catch (error: any) {
+        console.error(error.message);
+        res.status(400).json({message: error.message});
+    }
+});
+
 app.patch('/friends/accept', async (req: Request, res: Response) => {
-    const { friendship_id } = req.body;
+    const { relation_id } = req.body;
 
     try {
         const { error } = await supabase
             .from('friendships')
             .update({ status: 'accepted' })
-            .eq('id', friendship_id);
+            .eq('id', relation_id);
 
         if (error) throw error;
         res.status(200).json({ message: 'Request accepted.' });
+    } catch (error: any) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+app.delete('/friends/remove', async (req: Request, res: Response) => {
+    const { relation_id } = req.body
+
+    try {
+        const { error } = await supabase
+            .from('friendships')
+            .delete()
+            .eq('id', relation_id);
+        res.status(200).json({ message: 'Relation removed.' })
+        if (error) throw error;
     } catch (error: any) {
         res.status(400).json({ error: error.message });
     }

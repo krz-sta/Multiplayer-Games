@@ -4,10 +4,21 @@ import dotenv from 'dotenv';
 import { supabase } from './config/supabase.js';
 import cookieParser from 'cookie-parser';
 import type { AuthError } from '@supabase/supabase-js';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 
 dotenv.config();
 
 const app = express();
+
+const httpServer = createServer(app);
+
+const io = new Server(httpServer, {
+    cors: {
+        origin: "http://localhost:5173",
+        methods: ["GET", "POST"]
+    }
+});
 
 app.use(cors({
     origin: 'http://localhost:5173',
@@ -15,6 +26,7 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
 app.use(cookieParser());
 
 const PORT = process.env.PORT || 3001;
@@ -209,7 +221,7 @@ app.get('/friends/:userId', async (req: Request, res: Response) => {
 
         const { data: friends, error: friendsError  } = await supabase
             .from('friendships')
-            .select('id, sender:profiles!sender_id(username), receiver:profiles!receiver_id(username)')
+            .select('id, sender_id, receiver_id, sender:profiles!sender_id(username), receiver:profiles!receiver_id(username)')
             .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
             .eq('status', 'accepted');
 
@@ -306,6 +318,44 @@ app.delete('/friends/remove', async (req: Request, res: Response) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Server is running on: http://localhost:${PORT}`);
+const connectedUsers = new Map();
+
+io.on('connection', (socket) => {
+    socket.on('register', (userId) => {
+        connectedUsers.set(userId, socket.id);
+        console.log(`Registered user: ${userId} with socket: ${socket.id}`);
+    });
+
+    socket.on('join_room', (roomName) => {
+        socket.join(roomName);
+        console.log(`Socket ${socket.id} has joined room ${roomName}`);
+    });
+
+    socket.on('send_message', (data) => {
+        io.to(data.room).emit('receive_message', data);
+    });
+
+    socket.on('invite_friend', (data) => {
+        const receiverSocketId = connectedUsers.get(data.receiverId);
+        console.log(data);
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit('receive_invite', {
+                room: data.room,
+                senderName: data.senderName
+            });
+        }
+    });
+
+    socket.on('disconnect', () => {
+        for (const [userId, socketId] of connectedUsers.entries()) {
+            if (socketId === socket.id) {
+                connectedUsers.delete(userId);
+                break;
+            }
+        }
+    });
+});
+
+httpServer.listen(PORT, () => {
+    console.log(`Server is running on port: ${PORT}`);
 });

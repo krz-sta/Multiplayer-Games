@@ -11,15 +11,6 @@ function FriendsList({ user }: any) {
             const res = await fetch(`http://localhost:3001/friends/${user.id}`);
             let data = await res.json();
 
-            for (let i = 0; i < 10; i++) {
-               data.requests.push({
-            id: 1000000 + i,
-                profiles: {
-                username: `fakeUser${i}`
-            }
-    });
-}
-
             setRequests(data.requests || []);
             setFriends(data.friends || []);
             setSentRequests(data.sent || []);
@@ -93,7 +84,7 @@ function FriendsList({ user }: any) {
                         ) : (
                         <ul className="overflow-auto">
                             {sentRequests.map(sentReq => (
-                                <li className="flex rounded-xl justify-between bg-gray-100 px-3 py-1 mb-1">
+                                <li key={sentReq.id} className="flex rounded-xl justify-between bg-gray-100 px-3 py-1 mb-1">
                                     <span>{sentReq.profiles?.username}</span>
                                     <button className="text-red-400 hover:text-red-300" onClick={() => handleRemove(sentReq.id)}>Cancel</button>
                                 </li>                      

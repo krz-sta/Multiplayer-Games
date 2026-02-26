@@ -43,7 +43,7 @@ function App() {
           />
           <Route
             path="/"
-            element={user ? <MainPage user={user} /> : <Navigate to="/login"/>}
+            element={user ? <MainPage user={user}/> : <Navigate to="/login"/>}
           />
         </Routes>
       </BrowserRouter>

@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from 'express';
-import { supabase } from '../config/supabase.js';
+import { supabase, createAnonClient } from '../config/supabase.js';
 
 const router = Router();
 
@@ -72,7 +72,8 @@ router.post('/login', async (req: Request, res: Response) => {
     const fakeEmail = `${username.toLowerCase()}@game.local`;
 
     try {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const anonClient = createAnonClient();
+        const { data, error } = await anonClient.auth.signInWithPassword({
             email: fakeEmail,
             password: password
         });
@@ -130,7 +131,8 @@ router.post('/guest', async (req: Request, res: Response) => {
             throw profileError;
         }
 
-        const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({ email: fakeEmail, password: password });
+        const anonClient = createAnonClient();
+        const { data: loginData, error: loginError } = await anonClient.auth.signInWithPassword({ email: fakeEmail, password: password });
 
         if (loginError) throw loginError;
 

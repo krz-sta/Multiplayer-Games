@@ -11,3 +11,7 @@ if (!supabaseURL || !supabaseKey) {
 }
 
 export const supabase = createClient(supabaseURL, supabaseKey);
+
+export function createAnonClient() {
+    return createClient(supabaseURL!, supabaseKey!);
+}

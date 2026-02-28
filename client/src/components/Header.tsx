@@ -1,72 +1,68 @@
 import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
 
-function Header({ user, setActiveTab }: any) {
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-    const handleLogout = async () => {
-        try {
-            await fetch('http://localhost:3001/auth/logout', {
-                method: 'POST',
-                credentials: 'include'
-            });
-
-            window.location.href = '/';
-        } catch (error) {
-            console.error('Error: ', error);
-        }
-    }
+function Header({ setActiveTab }: { setActiveTab: (tab: string) => void }) {
+    const { user, logout } = useAuth();
+    const [mobileOpen, setMobileOpen] = useState(false);
 
     return (
-        <header className="bg-blue-500 text-white px-6 py-4">
+        <header className="bg-slate-800/80 backdrop-blur-xl border-b border-slate-700/50 px-6 py-4">
             <div className="flex justify-between items-center">
-                <h1 className="font-bold text-xl">Multiplayer Games</h1>
-                <button 
-                    className="md:hidden block text-white focus:outline-none" 
-                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                <h1 className="font-extrabold text-xl bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+                    Multiplayer Games
+                </h1>
+
+
+                <nav className="hidden md:flex gap-2 items-center">
+                    <button
+                        onClick={() => setActiveTab('games')}
+                        className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700/50 rounded-lg transition-all"
+                    >
+                        🎮 Play
+                    </button>
+                    {!user?.user_metadata.is_guest && (
+                        <button
+                            onClick={() => setActiveTab('friends')}
+                            className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700/50 rounded-lg transition-all"
+                        >
+                            👥 Friends
+                        </button>
+                    )}
+                    <button
+                        onClick={logout}
+                        className="px-4 py-2 text-sm font-medium text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                    >
+                        Log out
+                    </button>
+                    <div className="ml-2 bg-gradient-to-r from-indigo-500 to-purple-500 px-4 py-1.5 rounded-full text-sm font-bold text-white shadow-lg shadow-indigo-500/20">
+                        {user?.user_metadata.username}
+                    </div>
+                </nav>
+
+
+                <button
+                    onClick={() => setMobileOpen(!mobileOpen)}
+                    className="md:hidden text-slate-300 hover:text-white p-2"
                 >
-                    <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        {isMenuOpen ? (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        ) : (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                        )}
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={mobileOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
                     </svg>
                 </button>
-
-                <nav className="hidden md:flex gap-6 items-center">
-                    <button onClick={() => setActiveTab('games')} className="drop-shadow-sm hover:text-blue-200 transition">Play</button>
-                    {!user.user_metadata.is_guest ? (<button onClick={() => setActiveTab('friends')} className="drop-shadow-sm hover:text-blue-200 transition">Friends</button>) : ''}
-                    <button 
-                        className="drop-shadow-sm hover:text-blue-200 transition"
-                        onClick={handleLogout}
-                    >
-                        Log out
-                    </button>
-                    <div className="bg-blue-600 px-4 py-1 rounded-full font-bold shadow-inner">
-                        {user.user_metadata.username}
-                    </div>
-                </nav>
             </div>
 
-            {isMenuOpen && (
-                <nav className="md:hidden flex flex-col gap-4 mt-4 pt-4 border-t border-blue-400">
-                    <div className="text-sm text-blue-200 mt-2">
-                        Logged in as: <span className="font-bold text-white">{user.user_metadata.username}</span>
-                    </div>
-                    <button onClick={() => setActiveTab('games')} className="text-left">Play</button>
 
-                    {!user.user_metadata.is_guest ? (<button onClick={() => setActiveTab('friends')} className="text-left">Friends</button>) : ''}
-
-                    <button 
-                        className="text-left"
-                        onClick={handleLogout}
-                    >
-                        Log out
-                    </button>
-                </nav>
+            {mobileOpen && (
+                <div className="md:hidden mt-4 flex flex-col gap-2 bg-slate-800 rounded-xl p-3 border border-slate-700/50">
+                    <button onClick={() => { setActiveTab('games'); setMobileOpen(false); }} className="text-left px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-700/50 rounded-lg transition-all">🎮 Play</button>
+                    {!user?.user_metadata.is_guest && (
+                        <button onClick={() => { setActiveTab('friends'); setMobileOpen(false); }} className="text-left px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-700/50 rounded-lg transition-all">👥 Friends</button>
+                    )}
+                    <button onClick={logout} className="text-left px-3 py-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all">Log out</button>
+                    <div className="px-3 py-2 text-sm text-slate-500">Logged in as <span className="font-bold text-indigo-400">{user?.user_metadata.username}</span></div>
+                </div>
             )}
         </header>
-    )   
+    );
 }
 
-export default Header
+export default Header;

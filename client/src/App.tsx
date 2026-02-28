@@ -1,53 +1,30 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import AuthPage from "./components/AuthPage.tsx"
 import MainPage from "./components/MainPage.tsx"
-import { useEffect, useState } from 'react'
+import { useAuth } from './context/AuthContext'
 
 function App() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading } = useAuth();
 
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const response = await fetch('http://localhost:3001/auth/me', {
-          credentials: 'include'
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.authenticated) {
-            setUser(data.user);
-          }
-        }
-      } catch (error) {
-        console.error("Error validating session:", error);
-      } finally {
-        setLoading(false);
-      }
-      
-    };
-
-    checkSession();
-  }, []);
-
-  if (loading) return <h1>Validating Session</h1>
+  if (loading) return (
+    <div className="h-screen flex items-center justify-center bg-slate-900">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+    </div>
+  )
 
   return (
-    <>
-      <BrowserRouter>
-        <Routes>
-          <Route
-            path="/login"
-            element={!user ? <AuthPage /> : <Navigate to="/"/>}
-          />
-          <Route
-            path="/"
-            element={user ? <MainPage user={user}/> : <Navigate to="/login"/>}
-          />
-        </Routes>
-      </BrowserRouter>
-    </>
+    <BrowserRouter>
+      <Routes>
+        <Route
+          path="/login"
+          element={!user ? <AuthPage /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/"
+          element={user ? <MainPage /> : <Navigate to="/login" />}
+        />
+      </Routes>
+    </BrowserRouter>
   )
 }
 

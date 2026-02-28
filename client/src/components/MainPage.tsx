@@ -1,74 +1,58 @@
 import FriendsList from "./FriendsList";
 import GamesList from "./GamesList"
 import Header from "./Header"
-import { useState, useEffect } from "react"
-import { io, Socket } from 'socket.io-client';
+import { useState } from "react"
+import { useAuth } from "../context/AuthContext";
+import { useSocket } from "../hooks/useSocket";
 
-function MainPage({ user }: any) {
+function MainPage() {
+    const { user } = useAuth();
+    const { socket, incomingInvite, dismissInvite } = useSocket(user!.id);
     const [activeTab, setActiveTab] = useState('games');
-    const [socket, setSocket] = useState<Socket | null>(null);
-
-    const [incomingInvite, setIncomingInvite] = useState<{senderName: string, room: string} | null>(null);
-    const [currentRoom, setCurrentRoom] = useState(`room_${user.id}`);
+    const [currentRoom, setCurrentRoom] = useState(`room_${user!.id}`);
     const [selectedGame, setSelectedGame] = useState<string | null>(null);
 
-    useEffect(() => {
-        const newSocket = io('http://localhost:3001');
-        setSocket(newSocket);
-
-        newSocket.on('connect', () => {
-            newSocket.emit('register', user.id);
-        });
-
-        const handleReceiveGameInvite = (data: any) => {
-            setIncomingInvite({ senderName: data.senderName, room: data.room });
-        };
-        newSocket.on('receive_invite', handleReceiveGameInvite);
-
-        return () => {
-            newSocket.off('receive_invite', handleReceiveGameInvite);
-            newSocket.disconnect();
-        }
-    }, [user.id]);
-
-    if (!socket) return <div>Connecting...</div>;
+    if (!socket) return (
+        <div className="h-screen flex items-center justify-center bg-slate-900">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+        </div>
+    );
 
     const acceptInvite = () => {
         if (incomingInvite) {
             setCurrentRoom(incomingInvite.room);
             setSelectedGame('tictactoe');
             setActiveTab('games');
-            setIncomingInvite(null);
+            dismissInvite();
         }
     };
 
     return (
         <>
             {incomingInvite && (
-                <div className="fixed bottom-5 right-5 bg-white border-2 border-blue-500 p-4 rounded-xl shadow-2xl z-50">
-                    <p className="font-bold mb-3">
-                        {incomingInvite.senderName} invited you to a game.
+                <div className="fixed bottom-5 right-5 bg-slate-800/90 backdrop-blur-xl border border-indigo-500/50 p-5 rounded-2xl shadow-2xl shadow-indigo-500/10 z-50 animate-[slideUp_0.3s_ease-out]">
+                    <p className="font-bold text-white mb-3">
+                        <span className="text-indigo-400">{incomingInvite.senderName}</span> invited you to a game.
                     </p>
                     <div className="flex gap-2 justify-end">
-                        <button onClick={acceptInvite} className="bg-green-500 text-white px-3 py-1 rounded font-bold hover:bg-green-600">Accept</button>
-                        <button onClick={() => setIncomingInvite(null)} className="bg-red-500 text-white px-3 py-1 rounded font-bold hover:bg-red-600">Decline</button>
+                        <button onClick={acceptInvite} className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-1.5 rounded-lg font-bold hover:from-green-600 hover:to-emerald-600 transition-all active:scale-95 shadow-lg shadow-green-500/25">Accept</button>
+                        <button onClick={dismissInvite} className="bg-slate-700 text-slate-300 px-4 py-1.5 rounded-lg font-bold hover:bg-slate-600 transition-all active:scale-95">Decline</button>
                     </div>
                 </div>
             )}
 
-            <div className="h-screen flex flex-col">
-                <Header user={user} activeTab={activeTab} setActiveTab={setActiveTab}/>
+            <div className="h-screen flex flex-col bg-slate-900">
+                <Header setActiveTab={setActiveTab} />
                 {activeTab === 'games' ? (
-                    <GamesList 
-                        user={user} 
+                    <GamesList
                         socket={socket}
                         currentRoom={currentRoom}
                         setCurrentRoom={setCurrentRoom}
                         selectedGame={selectedGame}
                         setSelectedGame={setSelectedGame}
                     />
-                ) : ''}
-                {activeTab === 'friends' ? <FriendsList user={user} socket={socket}/> : ''}
+                ) : null}
+                {activeTab === 'friends' ? <FriendsList /> : null}
             </div>
         </>
     )

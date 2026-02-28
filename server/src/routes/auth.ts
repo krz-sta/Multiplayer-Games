@@ -3,6 +3,13 @@ import { supabase } from '../config/supabase.js';
 
 const router = Router();
 
+const isProd = process.env.NODE_ENV === 'production';
+const cookieOptions: { httpOnly: boolean; secure: boolean; sameSite: 'none' | 'lax' } = {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
+};
+
 router.post('/signup', async (req: Request, res: Response) => {
     const { username, password } = req.body;
 
@@ -72,9 +79,7 @@ router.post('/login', async (req: Request, res: Response) => {
 
         if (error) throw error;
 
-        res.cookie('session-token', data.session.access_token, {
-            httpOnly: true, secure: false, sameSite: 'lax'
-        });
+        res.cookie('session-token', data.session.access_token, cookieOptions);
 
         res.status(200).json({ message: 'Logged in successfully.', user: data.user });
     } catch (error: any) {
@@ -101,7 +106,7 @@ router.post('/logout', async (req: Request, res: Response) => {
         try { await supabase.auth.admin.signOut(token); }
         catch (error: any) { console.error('Error: ', error); }
     }
-    res.clearCookie('session-token', { httpOnly: true, secure: false, sameSite: 'lax' });
+    res.clearCookie('session-token', cookieOptions);
     res.status(200).json({ message: 'Logged out successfully.' });
 });
 
@@ -129,7 +134,7 @@ router.post('/guest', async (req: Request, res: Response) => {
 
         if (loginError) throw loginError;
 
-        res.cookie('session-token', loginData.session.access_token, { httpOnly: true, secure: false, sameSite: 'lax' });
+        res.cookie('session-token', loginData.session.access_token, cookieOptions);
         res.status(201).json({ message: 'Logged in as guest.', user: loginData.user });
     } catch (error: any) {
         console.error('Error: ', error);

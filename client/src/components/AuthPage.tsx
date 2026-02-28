@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { API_URL } from "../config";
 import toast from 'react-hot-toast';
+import { useAuth } from "../context/AuthContext";
 
 function AuthPage() {
+    const { setAuth } = useAuth();
     const [isLogin, setIsLogin] = useState(true);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -14,15 +16,18 @@ function AuthPage() {
             const response = await fetch(`${API_URL}/auth/${endpoint}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password }),
-                credentials: 'include'
+                body: JSON.stringify({ username, password })
             });
 
             const data = await response.json();
 
             if (response.ok) {
                 toast.success(data.message);
-                window.location.href = '/';
+                if (data.token) {
+                    setAuth(data.user, data.token);
+                } else {
+                    setIsLogin(true);
+                }
             } else {
                 toast.error(data.error || data.message || 'Something went wrong.');
             }
@@ -35,13 +40,12 @@ function AuthPage() {
     const handleGuestLogin = async () => {
         try {
             const response = await fetch(`${API_URL}/auth/guest`, {
-                method: 'POST',
-                credentials: 'include'
+                method: 'POST'
             });
             const data = await response.json();
             if (response.ok) {
                 toast.success('Welcome, guest!');
-                window.location.href = '/';
+                setAuth(data.user, data.token);
             } else {
                 toast.error(data.error || 'Guest login failed.');
             }

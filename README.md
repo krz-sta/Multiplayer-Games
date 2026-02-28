@@ -11,34 +11,27 @@
 [![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?logo=supabase&logoColor=white)](https://supabase.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS_4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 
-[Live Demo](#) · [Report Bug](https://github.com/krz-sta/Multiplayer-Games/issues) · [Request Feature](https://github.com/krz-sta/Multiplayer-Games/issues)
-
 </div>
 
 ---
 
-<!-- Add your own screenshots here:
-![Login Page](screenshots/login.png)
-![Game Board](screenshots/game.png)
--->
+## Features
 
-## ✨ Features
+**Real-Time Multiplayer** — Play games with friends using WebSocket-powered communication and synchronization
 
-🎯 **Real-Time Multiplayer** — Play games with friends using WebSocket-powered communication with zero-lag synchronization
+**Authentication System** — Full signup/login flow with session cookies, plus guest access
 
-🔐 **Authentication System** — Full signup/login flow with session cookies, plus guest access for instant play
+**Friends System** — Send/accept/decline friend requests, manage your friends list, and invite them to games
 
-👥 **Friends System** — Send/accept/decline friend requests, manage your friends list, and invite them to games
+**Live Chat** — In-game chat with auto-scrolling, system messages, and per-user color coding
 
-💬 **Live Chat** — In-game chat with auto-scrolling, system messages, and per-user color coding
+**Dark UI** — Gradient accents, micro-animations, and responsive mobile design
 
-🎨 **Premium Dark UI** — Glassmorphism cards, gradient accents, micro-animations, and responsive mobile design
+**Socket Resilience** — Auto-reconnection with exponential backoff, room cleanup, and state recovery
 
-🔄 **Socket Resilience** — Auto-reconnection with exponential backoff, room cleanup, and state recovery
+**Extensible Architecture** — Game registry pattern makes adding new games as simple as adding an object to an array
 
-🏗️ **Extensible Architecture** — Game registry pattern makes adding new games as simple as adding an object to an array
-
-## 🏗️ Architecture
+## Architecture
 
 ```
 Multiplayer-Games/
@@ -85,7 +78,7 @@ sequenceDiagram
     WS-->>C: update_board (broadcast)
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -167,7 +160,7 @@ Open **http://localhost:5173** and start playing!
 | **Database** | Supabase (PostgreSQL) | User auth, profiles, friendships |
 | **Auth** | Supabase Auth + HTTP-only cookies | Secure session management |
 
-## 🎮 Adding New Games
+## Adding New Games
 
 The project uses a **game registry pattern** — adding a new game is straightforward:
 
@@ -196,7 +189,7 @@ export const gameRegistry: GameConfig[] = [
 
 Then create the corresponding game component and socket handlers.
 
-## 🌐 Deployment
+## Deployment
 
 | Service | Platform | Config |
 |---------|----------|--------|
@@ -206,12 +199,6 @@ Then create the corresponding game component and socket handlers.
 > Set `VITE_API_URL` on Netlify → your Render URL  
 > Set `CLIENT_URL` on Render → your Netlify URL
 
-## 📄 License
+## License
 
 This project is open source and available under the [MIT License](LICENSE).
-
----
-
-<div align="center">
-  <sub>Built with ❤️ by <a href="https://github.com/krz-sta">krz-sta</a></sub>
-</div>

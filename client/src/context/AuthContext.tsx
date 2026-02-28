@@ -5,7 +5,8 @@ import type { User } from '../types';
 interface AuthContextType {
     user: User | null;
     loading: boolean;
-    logout: () => Promise<void>;
+    logout: () => void;
+    setAuth: (user: User, token: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -16,16 +17,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         const checkSession = async () => {
+            const token = localStorage.getItem('session-token');
+            if (!token) {
+                setLoading(false);
+                return;
+            }
+
             try {
                 const response = await fetch(`${API_URL}/auth/me`, {
-                    credentials: 'include'
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
                 });
 
                 if (response.ok) {
                     const data = await response.json();
                     if (data.authenticated) {
                         setUser(data.user);
+                    } else {
+                        localStorage.removeItem('session-token');
                     }
+                } else {
+                    localStorage.removeItem('session-token');
                 }
             } catch (error) {
                 console.error("Error validating session:", error);
@@ -37,20 +50,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         checkSession();
     }, []);
 
-    const logout = async () => {
-        try {
-            await fetch(`${API_URL}/auth/logout`, {
-                method: 'POST',
-                credentials: 'include'
-            });
-        } catch (error) {
-            console.error('Error: ', error);
-        }
+    const setAuth = (user: User, token: string) => {
+        localStorage.setItem('session-token', token);
+        setUser(user);
+    };
+
+    const logout = () => {
+        localStorage.removeItem('session-token');
+        setUser(null);
         window.location.href = '/';
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, logout }}>
+        <AuthContext.Provider value={{ user, loading, logout, setAuth }}>
             {children}
         </AuthContext.Provider>
     );

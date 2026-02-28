@@ -3,13 +3,6 @@ import { supabase, createAnonClient } from '../config/supabase.js';
 
 const router = Router();
 
-const isProd = process.env.NODE_ENV === 'production';
-const cookieOptions: { httpOnly: boolean; secure: boolean; sameSite: 'none' | 'lax' } = {
-    httpOnly: true,
-    secure: isProd,
-    sameSite: isProd ? 'none' : 'lax',
-};
-
 router.post('/signup', async (req: Request, res: Response) => {
     const { username, password } = req.body;
 
@@ -80,9 +73,11 @@ router.post('/login', async (req: Request, res: Response) => {
 
         if (error) throw error;
 
-        res.cookie('session-token', data.session.access_token, cookieOptions);
-
-        res.status(200).json({ message: 'Logged in successfully.', user: data.user });
+        res.status(200).json({
+            message: 'Logged in successfully.',
+            user: data.user,
+            token: data.session.access_token
+        });
     } catch (error: any) {
         console.error('Error: ', error)
         res.status(401).json({ status: 'error', message: 'Invalid credentials.', details: error.message });
@@ -90,7 +85,8 @@ router.post('/login', async (req: Request, res: Response) => {
 });
 
 router.get('/me', async (req: Request, res: Response) => {
-    const token = req.cookies['session-token'];
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
 
     if (!token) return res.status(401).json({ authenticated: false });
 
@@ -102,12 +98,6 @@ router.get('/me', async (req: Request, res: Response) => {
 });
 
 router.post('/logout', async (req: Request, res: Response) => {
-    const token = req.cookies['session-token'];
-    if (token) {
-        try { await supabase.auth.admin.signOut(token); }
-        catch (error: any) { console.error('Error: ', error); }
-    }
-    res.clearCookie('session-token', cookieOptions);
     res.status(200).json({ message: 'Logged out successfully.' });
 });
 
@@ -136,8 +126,11 @@ router.post('/guest', async (req: Request, res: Response) => {
 
         if (loginError) throw loginError;
 
-        res.cookie('session-token', loginData.session.access_token, cookieOptions);
-        res.status(201).json({ message: 'Logged in as guest.', user: loginData.user });
+        res.status(201).json({
+            message: 'Logged in as guest.',
+            user: loginData.user,
+            token: loginData.session.access_token
+        });
     } catch (error: any) {
         console.error('Error: ', error);
         res.status(500).json({ error: 'Guest login failed.' });

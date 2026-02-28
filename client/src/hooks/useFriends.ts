@@ -8,8 +8,11 @@ export function useFriends(userId: string) {
     const [sentRequests, setSentRequests] = useState<FriendRequest[]>([]);
 
     const fetchFriends = async () => {
+        const token = localStorage.getItem('session-token');
         try {
-            const res = await fetch(`${API_URL}/friends/${userId}`);
+            const res = await fetch(`${API_URL}/friends/${userId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
             const data = await res.json();
 
             setRequests(data.requests || []);
@@ -25,10 +28,14 @@ export function useFriends(userId: string) {
     }, [userId]);
 
     const acceptRequest = async (relationId: number) => {
+        const token = localStorage.getItem('session-token');
         try {
             await fetch(`${API_URL}/friends/accept`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify({ relation_id: relationId })
             });
             fetchFriends();
@@ -38,10 +45,14 @@ export function useFriends(userId: string) {
     };
 
     const removeRelation = async (relationId: number) => {
+        const token = localStorage.getItem('session-token');
         try {
             await fetch(`${API_URL}/friends/remove`, {
                 method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify({ relation_id: relationId })
             });
             fetchFriends();
@@ -51,10 +62,14 @@ export function useFriends(userId: string) {
     };
 
     const sendRequest = async (username: string, senderId: string) => {
+        const token = localStorage.getItem('session-token');
         try {
             await fetch(`${API_URL}/friends/requestusername`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify({ sender_id: senderId, receiver_username: username })
             });
             fetchFriends();

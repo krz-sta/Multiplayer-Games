@@ -2,6 +2,8 @@
 
 # 🎮 Multiplayer Games
 
+## This project's Supabase service is paused, the app is not actively hosted.
+
 **A real-time multiplayer gaming platform built with React, Node.js, and Socket.IO**
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)

@@ -33,6 +33,14 @@
 
 **Extensible Architecture** — Game registry pattern makes adding new games as simple as adding an object to an array
 
+## Screenshots
+
+<div align="center">
+<img src="/login.png">
+<img src="/mainscreen.png">
+<img src="/game.png">
+</div>
+    
 ## Architecture
 
 ```
